@@ -3,7 +3,7 @@ from PyQt5.QtGui import QPainter, QPen, QBrush
 from PyQt5.QtCore import Qt, QRectF, QPoint
 
 import socket
-
+import ast
 import sys
 
 
@@ -209,7 +209,16 @@ class Go_Game(QMainWindow):
         col = int(point.x() / tileSize["x"])
         row = int(point.y() / tileSize["y"])
 
+        print(col, row)
         self.s.send(f"place|{col}|{row}".encode())
+        # receive data from socket
+        data = self.s.recv(1024).decode()
+        board = ast.literal_eval(data)
+
+        for y in range(self.boardHeight):
+            for x in range(self.boardWidth):
+                self.boardArray[y][x] = board[y][x]
+
         # for y in range(self.boardHeight):
         #     for x in range(self.boardWidth):
         #         self.saveBoard[y][x] = self.boardArray[y][x]

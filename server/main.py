@@ -103,8 +103,7 @@ class Game:
             #     return True
             # else:
             #     return False
-            print(self.boardArray)
-            return True
+            return self.boardArray
         else:
             return False
 
@@ -138,19 +137,20 @@ class Server():
                 else:
                     data = sock.recv(self.RECV_BUFFER).decode("utf-8")
                     if data:
-                        self.parse_msg(data, addr, sock)
+                        self.parse_msg(data, sock.getpeername(), sock)
         self.server_socket.close()
 
     def parse_msg(self, data, addr, sock):
         command = data.replace('\n', '').split('|')
         if command[0] == 'connected':
-            self.broadcast_data(sock, "salope va".encode())
             if self.Players[Piece.Black] is None:
                 self.Players[Piece.Black] = addr[0]
             else:
                 self.Players[Piece.White] = addr[0]
         if command[0] == 'place':
-            self.game.placePiece(int(command[1]), int(command[2]), self.Players, addr[0])
+            board = self.game.placePiece(int(command[1]), int(command[2]), self.Players, addr[0])
+            print(board)
+            self.broadcast_data(sock, str(board).encode())
 
     def broadcast_data(self, sock, message):
         for socket in self.CONNECTION_LIST:
