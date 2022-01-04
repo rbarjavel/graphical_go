@@ -151,6 +151,7 @@ class Server():
             board = self.game.placePiece(int(command[1]), int(command[2]), self.Players, addr[0])
             print(board)
             self.broadcast_data(sock, str(board).encode())
+            board = None
 
     def broadcast_data(self, sock, message):
         for socket in self.CONNECTION_LIST:
