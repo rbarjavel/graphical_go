@@ -150,7 +150,8 @@ class Server():
         if command[0] == 'place':
             board = self.game.placePiece(int(command[1]), int(command[2]), self.Players, addr[0])
             print(board)
-            self.broadcast_data(sock, str(board).encode())
+            if board != False:
+                self.broadcast_data(sock, str(board).encode())
             board = None
 
     def broadcast_data(self, sock, message):

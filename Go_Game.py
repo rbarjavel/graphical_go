@@ -211,7 +211,6 @@ class Go_Game(QMainWindow):
 
         self.s.send(f"place|{col}|{row}".encode())
         data = self.s.recv(161).decode()
-        print(data + "\n")
         board = ast.literal_eval(data)
 
         for y in range(self.boardHeight):
@@ -288,8 +287,8 @@ class Go_Game(QMainWindow):
                     painter.setPen(QPen(QBrush(Qt.black), 2, Qt.SolidLine, Qt.RoundCap, Qt.RoundJoin))
                 if self.boardArray[col][row] != Piece.NoPiece:
                     center = QPoint(
-                        tileSize["x"]*col + radiusX + tileSize["x"]/2.0,
-                        tileSize["y"]*row + radiusY + tileSize["y"]/2.0
+                        tileSize["x"]*row + radiusX + tileSize["x"]/2.0,
+                        tileSize["y"]*col + radiusY + tileSize["y"]/2.0
                     )
                     painter.drawEllipse(center, radiusX*0.8, radiusY*0.8)
 
