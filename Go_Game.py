@@ -210,10 +210,9 @@ class Go_Game(QMainWindow):
         row = int(point.y() / tileSize["y"])
 
         self.s.send(f"place|{col}|{row}".encode())
-        # receive data from socket
-        data = self.s.recv(1024).decode()
+        data = self.s.recv(161).decode()
         print(data + "\n")
-        board = ast.literal_eval(data)
+        board = ast.literal_eval(data[0])
 
         for y in range(self.boardHeight):
             for x in range(self.boardWidth):
