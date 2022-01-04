@@ -212,7 +212,7 @@ class Go_Game(QMainWindow):
         self.s.send(f"place|{col}|{row}".encode())
         data = self.s.recv(161).decode()
         print(data + "\n")
-        board = ast.literal_eval(data[0])
+        board = ast.literal_eval(data)
 
         for y in range(self.boardHeight):
             for x in range(self.boardWidth):
