@@ -107,54 +107,84 @@ class Go_Game(QMainWindow):
                     self.checkBlocked(x, y)
 
     def reset(self):
-        self.boardArray = [
-            [Piece.NoPiece, Piece.NoPiece, Piece.NoPiece, Piece.NoPiece, Piece.NoPiece, Piece.NoPiece, Piece.NoPiece],
-            [Piece.NoPiece, Piece.NoPiece, Piece.NoPiece, Piece.NoPiece, Piece.NoPiece, Piece.NoPiece, Piece.NoPiece],
-            [Piece.NoPiece, Piece.NoPiece, Piece.NoPiece, Piece.NoPiece, Piece.NoPiece, Piece.NoPiece, Piece.NoPiece],
-            [Piece.NoPiece, Piece.NoPiece, Piece.NoPiece, Piece.NoPiece, Piece.NoPiece, Piece.NoPiece, Piece.NoPiece],
-            [Piece.NoPiece, Piece.NoPiece, Piece.NoPiece, Piece.NoPiece, Piece.NoPiece, Piece.NoPiece, Piece.NoPiece],
-            [Piece.NoPiece, Piece.NoPiece, Piece.NoPiece, Piece.NoPiece, Piece.NoPiece, Piece.NoPiece, Piece.NoPiece],
-            [Piece.NoPiece, Piece.NoPiece, Piece.NoPiece, Piece.NoPiece, Piece.NoPiece, Piece.NoPiece, Piece.NoPiece]
-        ]
-        self.saveBoard = [
-            [Piece.NoPiece, Piece.NoPiece, Piece.NoPiece, Piece.NoPiece, Piece.NoPiece, Piece.NoPiece, Piece.NoPiece],
-            [Piece.NoPiece, Piece.NoPiece, Piece.NoPiece, Piece.NoPiece, Piece.NoPiece, Piece.NoPiece, Piece.NoPiece],
-            [Piece.NoPiece, Piece.NoPiece, Piece.NoPiece, Piece.NoPiece, Piece.NoPiece, Piece.NoPiece, Piece.NoPiece],
-            [Piece.NoPiece, Piece.NoPiece, Piece.NoPiece, Piece.NoPiece, Piece.NoPiece, Piece.NoPiece, Piece.NoPiece],
-            [Piece.NoPiece, Piece.NoPiece, Piece.NoPiece, Piece.NoPiece, Piece.NoPiece, Piece.NoPiece, Piece.NoPiece],
-            [Piece.NoPiece, Piece.NoPiece, Piece.NoPiece, Piece.NoPiece, Piece.NoPiece, Piece.NoPiece, Piece.NoPiece],
-            [Piece.NoPiece, Piece.NoPiece, Piece.NoPiece, Piece.NoPiece, Piece.NoPiece, Piece.NoPiece, Piece.NoPiece]
-        ]
-        self.WhiteScore = 0
-        self.BlackScore = 0
-        self.WhiteCaptured = 0
-        self.BlackCaptured = 0
-        self.updateToolBar()
-        self.update()
+        # self.boardArray = [
+        #     [Piece.NoPiece, Piece.NoPiece, Piece.NoPiece, Piece.NoPiece, Piece.NoPiece, Piece.NoPiece, Piece.NoPiece],
+        #     [Piece.NoPiece, Piece.NoPiece, Piece.NoPiece, Piece.NoPiece, Piece.NoPiece, Piece.NoPiece, Piece.NoPiece],
+        #     [Piece.NoPiece, Piece.NoPiece, Piece.NoPiece, Piece.NoPiece, Piece.NoPiece, Piece.NoPiece, Piece.NoPiece],
+        #     [Piece.NoPiece, Piece.NoPiece, Piece.NoPiece, Piece.NoPiece, Piece.NoPiece, Piece.NoPiece, Piece.NoPiece],
+        #     [Piece.NoPiece, Piece.NoPiece, Piece.NoPiece, Piece.NoPiece, Piece.NoPiece, Piece.NoPiece, Piece.NoPiece],
+        #     [Piece.NoPiece, Piece.NoPiece, Piece.NoPiece, Piece.NoPiece, Piece.NoPiece, Piece.NoPiece, Piece.NoPiece],
+        #     [Piece.NoPiece, Piece.NoPiece, Piece.NoPiece, Piece.NoPiece, Piece.NoPiece, Piece.NoPiece, Piece.NoPiece]
+        # ]
+        # self.saveBoard = [
+        #     [Piece.NoPiece, Piece.NoPiece, Piece.NoPiece, Piece.NoPiece, Piece.NoPiece, Piece.NoPiece, Piece.NoPiece],
+        #     [Piece.NoPiece, Piece.NoPiece, Piece.NoPiece, Piece.NoPiece, Piece.NoPiece, Piece.NoPiece, Piece.NoPiece],
+        #     [Piece.NoPiece, Piece.NoPiece, Piece.NoPiece, Piece.NoPiece, Piece.NoPiece, Piece.NoPiece, Piece.NoPiece],
+        #     [Piece.NoPiece, Piece.NoPiece, Piece.NoPiece, Piece.NoPiece, Piece.NoPiece, Piece.NoPiece, Piece.NoPiece],
+        #     [Piece.NoPiece, Piece.NoPiece, Piece.NoPiece, Piece.NoPiece, Piece.NoPiece, Piece.NoPiece, Piece.NoPiece],
+        #     [Piece.NoPiece, Piece.NoPiece, Piece.NoPiece, Piece.NoPiece, Piece.NoPiece, Piece.NoPiece, Piece.NoPiece],
+        #     [Piece.NoPiece, Piece.NoPiece, Piece.NoPiece, Piece.NoPiece, Piece.NoPiece, Piece.NoPiece, Piece.NoPiece]
+        # ]
+        # self.WhiteScore = 0
+        # self.BlackScore = 0
+        # self.WhiteCaptured = 0
+        # self.BlackCaptured = 0
+        # self.updateToolBar()
 
-    def undo(self):
+        self.s.send("reset".encode())
+        data = self.s.recv(161).decode()
+        board = ast.literal_eval(data)
+
         for y in range(self.boardHeight):
             for x in range(self.boardWidth):
-                temp = self.boardArray[y][x]
-                self.boardArray[y][x] = self.saveBoard[y][x]
-                self.saveBoard[y][x] = temp
+                self.boardArray[y][x] = board[y][x]
 
-        if self.undoStatus == 0:
-            self.undoAction.setText("REDO")
-            self.undoStatus = 1
-        else:
-            self.undoAction.setText("UNDO")
-            self.undoStatus = 0
-        self.updateToolBar()
-        self.update()
+        data = ""
+
+        self.getScores()
+
+    def undo(self):
+        # for y in range(self.boardHeight):
+        #     for x in range(self.boardWidth):
+        #         temp = self.boardArray[y][x]
+        #         self.boardArray[y][x] = self.saveBoard[y][x]
+        #         self.saveBoard[y][x] = temp
+
+        # if self.undoStatus == 0:
+        #     self.undoAction.setText("REDO")
+        #     self.undoStatus = 1
+        # else:
+        #     self.undoAction.setText("UNDO")
+        #     self.undoStatus = 0
+
+        self.s.send("undo".encode())
+        data = self.s.recv(161).decode()
+        board = ast.literal_eval(data)
+
+        for y in range(self.boardHeight):
+            for x in range(self.boardWidth):
+                self.boardArray[y][x] = board[y][x]
+
+        data = ""
+
+        self.getScores()
 
     def passTurn(self):
-        if self.turn == Piece.Black:
-            self.turn = Piece.White
-        else:
-            self.turn = Piece.Black
-        self.updateToolBar()
-        self.update()
+        # if self.turn == Piece.Black:
+        #     self.turn = Piece.White
+        # else:
+        #     self.turn = Piece.Black
+
+        self.s.send("pass".encode())
+        data = self.s.recv(161).decode()
+        board = ast.literal_eval(data)
+
+        for y in range(self.boardHeight):
+            for x in range(self.boardWidth):
+                self.boardArray[y][x] = board[y][x]
+
+        data = ""
+        self.getScores()
 
     def checkBlocked(self, row, col):
         try:
@@ -239,7 +269,17 @@ class Go_Game(QMainWindow):
         #     if self.checkWin():
         #         self.gameOver()
         #     self.updateToolBar()
+        self.getScores()
 
+    def getScores(self):
+        self.s.send("scores".encode())
+        data = self.s.recv(161).decode()
+        scores = data.split('|')
+        self.WhiteScore = int(scores[0])
+        self.BlackScore = int(scores[1])
+        self.WhiteCaptured = int(scores[2])
+        self.BlackCaptured = int(scores[3])
+        self.updateToolBar()
         self.update()
 
     def drawBoardSquares(self, painter):

@@ -49,6 +49,31 @@ class Game:
                 self.boardArray[y][x] = self.saveBoard[y][x]
                 self.saveBoard[y][x] = temp
 
+    def reset(self):
+        self.boardArray = [
+            [Piece.NoPiece, Piece.NoPiece, Piece.NoPiece, Piece.NoPiece, Piece.NoPiece, Piece.NoPiece, Piece.NoPiece],
+            [Piece.NoPiece, Piece.NoPiece, Piece.NoPiece, Piece.NoPiece, Piece.NoPiece, Piece.NoPiece, Piece.NoPiece],
+            [Piece.NoPiece, Piece.NoPiece, Piece.NoPiece, Piece.NoPiece, Piece.NoPiece, Piece.NoPiece, Piece.NoPiece],
+            [Piece.NoPiece, Piece.NoPiece, Piece.NoPiece, Piece.NoPiece, Piece.NoPiece, Piece.NoPiece, Piece.NoPiece],
+            [Piece.NoPiece, Piece.NoPiece, Piece.NoPiece, Piece.NoPiece, Piece.NoPiece, Piece.NoPiece, Piece.NoPiece],
+            [Piece.NoPiece, Piece.NoPiece, Piece.NoPiece, Piece.NoPiece, Piece.NoPiece, Piece.NoPiece, Piece.NoPiece],
+            [Piece.NoPiece, Piece.NoPiece, Piece.NoPiece, Piece.NoPiece, Piece.NoPiece, Piece.NoPiece, Piece.NoPiece]
+        ]
+        self.saveBoard = [
+            [Piece.NoPiece, Piece.NoPiece, Piece.NoPiece, Piece.NoPiece, Piece.NoPiece, Piece.NoPiece, Piece.NoPiece],
+            [Piece.NoPiece, Piece.NoPiece, Piece.NoPiece, Piece.NoPiece, Piece.NoPiece, Piece.NoPiece, Piece.NoPiece],
+            [Piece.NoPiece, Piece.NoPiece, Piece.NoPiece, Piece.NoPiece, Piece.NoPiece, Piece.NoPiece, Piece.NoPiece],
+            [Piece.NoPiece, Piece.NoPiece, Piece.NoPiece, Piece.NoPiece, Piece.NoPiece, Piece.NoPiece, Piece.NoPiece],
+            [Piece.NoPiece, Piece.NoPiece, Piece.NoPiece, Piece.NoPiece, Piece.NoPiece, Piece.NoPiece, Piece.NoPiece],
+            [Piece.NoPiece, Piece.NoPiece, Piece.NoPiece, Piece.NoPiece, Piece.NoPiece, Piece.NoPiece, Piece.NoPiece],
+            [Piece.NoPiece, Piece.NoPiece, Piece.NoPiece, Piece.NoPiece, Piece.NoPiece, Piece.NoPiece, Piece.NoPiece]
+        ]
+        self.turn = Piece.Black
+        self.WhiteScore = 0
+        self.BlackScore = 0
+        self.WhiteCaptured = 0
+        self.BlackCaptured = 0
+
     def checkBoard(self):
         for y in range(self.boardHeight):
             for x in range(self.boardWidth):
@@ -107,6 +132,12 @@ class Game:
         else:
             return False
 
+    def passTurn(self):
+        if self.turn == Piece.Black:
+            self.turn = Piece.White
+        else:
+            self.turn = Piece.Black
+
 
 class Server():
     def run(self):
@@ -150,9 +181,21 @@ class Server():
         if command[0] == 'place':
             board = self.game.placePiece(int(command[1]), int(command[2]), self.Players, addr[0])
             print(board)
-            if board != False:
+            if board is not False:
                 self.broadcast_data(sock, str(board).encode())
             board = None
+        if command[0] == 'reset':
+            self.game.reset()
+            self.broadcast_data(sock, str(self.game.boardArray).encode())
+        if command[0] == 'undo':
+            self.game.undo()
+            self.broadcast_data(sock, str(self.game.boardArray).encode())
+        if command[0] == 'pass':
+            self.game.passTurn()
+            self.broadcast_data(sock, str(self.game.boardArray).encode())
+        if command[0] == 'scores':
+            self.game.calculateScore()
+            self.broadcast_data(sock, f"{self.game.WhiteScore}|{self.game.BlackScore}|{self.game.WhiteCaptured}|{self.game.BlackCaptured}".encode())
 
     def broadcast_data(self, sock, message):
         for socket in self.CONNECTION_LIST:
