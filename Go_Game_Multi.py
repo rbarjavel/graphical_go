@@ -2,6 +2,8 @@ from PyQt5.QtWidgets import QMainWindow, QApplication, QToolBar, QLabel, QAction
 from PyQt5.QtGui import QPainter, QPen, QBrush
 from PyQt5.QtCore import Qt, QRectF, QPoint
 
+import socket
+import ast
 import sys
 
 
@@ -24,15 +26,6 @@ class Go_Game(QMainWindow):
     boardHeight = 7
     boardWidth = 7
     boardArray = [
-        [Piece.NoPiece, Piece.NoPiece, Piece.NoPiece, Piece.NoPiece, Piece.NoPiece, Piece.NoPiece, Piece.NoPiece],
-        [Piece.NoPiece, Piece.NoPiece, Piece.NoPiece, Piece.NoPiece, Piece.NoPiece, Piece.NoPiece, Piece.NoPiece],
-        [Piece.NoPiece, Piece.NoPiece, Piece.NoPiece, Piece.NoPiece, Piece.NoPiece, Piece.NoPiece, Piece.NoPiece],
-        [Piece.NoPiece, Piece.NoPiece, Piece.NoPiece, Piece.NoPiece, Piece.NoPiece, Piece.NoPiece, Piece.NoPiece],
-        [Piece.NoPiece, Piece.NoPiece, Piece.NoPiece, Piece.NoPiece, Piece.NoPiece, Piece.NoPiece, Piece.NoPiece],
-        [Piece.NoPiece, Piece.NoPiece, Piece.NoPiece, Piece.NoPiece, Piece.NoPiece, Piece.NoPiece, Piece.NoPiece],
-        [Piece.NoPiece, Piece.NoPiece, Piece.NoPiece, Piece.NoPiece, Piece.NoPiece, Piece.NoPiece, Piece.NoPiece]
-    ]
-    saveBoard = [
         [Piece.NoPiece, Piece.NoPiece, Piece.NoPiece, Piece.NoPiece, Piece.NoPiece, Piece.NoPiece, Piece.NoPiece],
         [Piece.NoPiece, Piece.NoPiece, Piece.NoPiece, Piece.NoPiece, Piece.NoPiece, Piece.NoPiece, Piece.NoPiece],
         [Piece.NoPiece, Piece.NoPiece, Piece.NoPiece, Piece.NoPiece, Piece.NoPiece, Piece.NoPiece, Piece.NoPiece],
@@ -87,6 +80,10 @@ class Go_Game(QMainWindow):
         self.passAction.triggered.connect(self.passTurn)
         self.toolBar.addAction(self.passAction)
 
+        self.s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+        self.s.connect(('localhost', 5002))
+        self.s.send("connected".encode())
+
         self.show()
 
     def paintEvent(self, event):
@@ -101,93 +98,48 @@ class Go_Game(QMainWindow):
                     self.checkBlocked(x, y)
 
     def reset(self):
-        self.boardArray = [
-            [Piece.NoPiece, Piece.NoPiece, Piece.NoPiece, Piece.NoPiece, Piece.NoPiece, Piece.NoPiece, Piece.NoPiece],
-            [Piece.NoPiece, Piece.NoPiece, Piece.NoPiece, Piece.NoPiece, Piece.NoPiece, Piece.NoPiece, Piece.NoPiece],
-            [Piece.NoPiece, Piece.NoPiece, Piece.NoPiece, Piece.NoPiece, Piece.NoPiece, Piece.NoPiece, Piece.NoPiece],
-            [Piece.NoPiece, Piece.NoPiece, Piece.NoPiece, Piece.NoPiece, Piece.NoPiece, Piece.NoPiece, Piece.NoPiece],
-            [Piece.NoPiece, Piece.NoPiece, Piece.NoPiece, Piece.NoPiece, Piece.NoPiece, Piece.NoPiece, Piece.NoPiece],
-            [Piece.NoPiece, Piece.NoPiece, Piece.NoPiece, Piece.NoPiece, Piece.NoPiece, Piece.NoPiece, Piece.NoPiece],
-            [Piece.NoPiece, Piece.NoPiece, Piece.NoPiece, Piece.NoPiece, Piece.NoPiece, Piece.NoPiece, Piece.NoPiece]
-        ]
-        self.saveBoard = [
-            [Piece.NoPiece, Piece.NoPiece, Piece.NoPiece, Piece.NoPiece, Piece.NoPiece, Piece.NoPiece, Piece.NoPiece],
-            [Piece.NoPiece, Piece.NoPiece, Piece.NoPiece, Piece.NoPiece, Piece.NoPiece, Piece.NoPiece, Piece.NoPiece],
-            [Piece.NoPiece, Piece.NoPiece, Piece.NoPiece, Piece.NoPiece, Piece.NoPiece, Piece.NoPiece, Piece.NoPiece],
-            [Piece.NoPiece, Piece.NoPiece, Piece.NoPiece, Piece.NoPiece, Piece.NoPiece, Piece.NoPiece, Piece.NoPiece],
-            [Piece.NoPiece, Piece.NoPiece, Piece.NoPiece, Piece.NoPiece, Piece.NoPiece, Piece.NoPiece, Piece.NoPiece],
-            [Piece.NoPiece, Piece.NoPiece, Piece.NoPiece, Piece.NoPiece, Piece.NoPiece, Piece.NoPiece, Piece.NoPiece],
-            [Piece.NoPiece, Piece.NoPiece, Piece.NoPiece, Piece.NoPiece, Piece.NoPiece, Piece.NoPiece, Piece.NoPiece]
-        ]
-        self.turn = Piece.Black
-        self.WhiteScore = 0
-        self.BlackScore = 0
-        self.WhiteCaptured = 0
-        self.BlackCaptured = 0
-        self.updateToolBar()
+        self.s.send("reset".encode())
+        data = self.s.recv(161).decode()
+        board = ast.literal_eval(data)
 
-        self.update()
+        for y in range(self.boardHeight):
+            for x in range(self.boardWidth):
+                self.boardArray[y][x] = board[y][x]
+
+        data = ""
+
+        self.getScores()
 
     def undo(self):
+        self.s.send("undo".encode())
+        data = self.s.recv(161).decode()
+        board = ast.literal_eval(data)
+
         for y in range(self.boardHeight):
             for x in range(self.boardWidth):
-                temp = self.boardArray[y][x]
-                self.boardArray[y][x] = self.saveBoard[y][x]
-                self.saveBoard[y][x] = temp
+                self.boardArray[y][x] = board[y][x]
 
-        if self.undoStatus == 0:
-            self.undoAction.setText("REDO")
-            self.undoStatus = 1
-        else:
-            self.undoAction.setText("UNDO")
-            self.undoStatus = 0
-        self.updateToolBar()
-        self.update()
+        data = ""
+
+        self.getScores()
 
     def passTurn(self):
-        if self.turn == Piece.Black:
-            self.turn = Piece.White
-        else:
-            self.turn = Piece.Black
-        self.updateToolBar()
-        self.update()
+        self.s.send("pass".encode())
+        data = self.s.recv(161).decode()
+        board = ast.literal_eval(data)
 
-    def checkBlocked(self, row, col):
-        try:
-            if self.boardArray[col][row] == Piece.Black and self.boardArray[col][row+1] == Piece.White and self.boardArray[col][row-1] == Piece.White and self.boardArray[col+1][row] == Piece.White and self.boardArray[col-1][row] == Piece.White:
-                self.boardArray[col][row] = Piece.NoPiece
-                self.BlackCaptured += 1
-            if self.boardArray[col][row] == Piece.White and self.boardArray[col][row+1] == Piece.Black and self.boardArray[col][row-1] == Piece.Black and self.boardArray[col+1][row] == Piece.Black and self.boardArray[col-1][row] == Piece.Black:
-                self.boardArray[col][row] = Piece.NoPiece
-                self.WhiteCaptured += 1
-        except IndexError:
-            pass
-
-    def calculateScore(self):
-        black = 0
-        white = 0
         for y in range(self.boardHeight):
             for x in range(self.boardWidth):
-                if self.boardArray[x][y] == Piece.Black:
-                    black += 1
-                elif self.boardArray[x][y] == Piece.White:
-                    white += 1
-        self.WhiteScore = white
-        self.BlackScore = black
+                self.boardArray[y][x] = board[y][x]
+
+        data = ""
+        self.getScores()
 
     def updateToolBar(self):
-        self.calculateScore()
         self.WhiteScoreLabel.setText("White Score: " + str(self.WhiteScore))
         self.BlackScoreLabel.setText("Black Score: " + str(self.BlackScore))
         self.WhiteCapturedLabel.setText("White Captured: " + str(self.WhiteCaptured))
         self.BlackCapturedLabel.setText("Black Captured: " + str(self.BlackCaptured))
-
-    def checkWin(self):
-        for y in range(self.boardHeight):
-            for x in range(self.boardWidth):
-                if self.boardArray[y][x] == Piece.NoPiece:
-                    return False
-        return True
 
     def gameOver(self):
         print("over")
@@ -205,30 +157,33 @@ class Go_Game(QMainWindow):
         col = int(point.x() / tileSize["x"])
         row = int(point.y() / tileSize["y"])
 
+        self.s.send(f"place|{col}|{row}".encode())
+        data = self.s.recv(161).decode()
+        board = ast.literal_eval(data)
+
         for y in range(self.boardHeight):
             for x in range(self.boardWidth):
-                self.saveBoard[y][x] = self.boardArray[y][x]
+                self.boardArray[y][x] = board[y][x]
 
-        if col > self.boardWidth:
-            col = self.boardWidth
-        if row > self.boardHeight:
-            row = self.boardHeight
-        if self.boardArray[col][row] == Piece.NoPiece:
-            if self.turn == Piece.Black:
-                self.boardArray[col][row] = self.turn
-            elif self.turn == Piece.White:
-                self.boardArray[col][row] = self.turn
-            self.checkBoard()
-            if self.turn == Piece.Black:
-                self.turn = Piece.White
-            elif self.turn == Piece.White:
-                self.turn = Piece.Black
-            if self.checkWin():
-                self.gameOver()
-            self.updateToolBar()
-            self.update()
+        data = ""
+        self.getScores()
+
+    def getScores(self):
+        self.s.send("scores".encode())
+        data = self.s.recv(161).decode()
+        scores = data.split('|')
+        self.WhiteScore = int(scores[0])
+        self.BlackScore = int(scores[1])
+        self.WhiteCaptured = int(scores[2])
+        self.BlackCaptured = int(scores[3])
+        self.updateToolBar()
+        self.update()
 
     def drawBoardSquares(self, painter):
+        """
+        Draw all the square on the board
+        :param QPainter painter: The painter used for this frame
+        """
         tileSize = {"x":self.size().width() / (self.boardWidth+1),"y":self.size().height() / (self.boardHeight+1)}
         painter.setPen(QPen(QBrush(Qt.black), 5, Qt.SolidLine, Qt.RoundCap, Qt.RoundJoin))
         for row in range(0, Board.boardHeight):
@@ -252,6 +207,10 @@ class Go_Game(QMainWindow):
                     painter.setBrush(QBrush(Qt.transparent, Qt.SolidPattern))
 
     def drawPieces(self, painter: QPainter):
+        """
+        Draw the pieces on the board
+        :param QPainter painter: The painter used for this frame
+        """
         tileSize = {"x": self.size().width() / (self.boardWidth+1), "y": self.size().height() / (self.boardHeight+1)}
         radiusX = tileSize["x"] / 2.0
         radiusY = tileSize["y"] / 2.0
@@ -265,8 +224,8 @@ class Go_Game(QMainWindow):
                     painter.setPen(QPen(QBrush(Qt.black), 2, Qt.SolidLine, Qt.RoundCap, Qt.RoundJoin))
                 if self.boardArray[col][row] != Piece.NoPiece:
                     center = QPoint(
-                        tileSize["x"]*col + radiusX + tileSize["x"]/2.0,
-                        tileSize["y"]*row + radiusY + tileSize["y"]/2.0
+                        tileSize["x"]*row + radiusX + tileSize["x"]/2.0,
+                        tileSize["y"]*col + radiusY + tileSize["y"]/2.0
                     )
                     painter.drawEllipse(center, radiusX*0.8, radiusY*0.8)
 
